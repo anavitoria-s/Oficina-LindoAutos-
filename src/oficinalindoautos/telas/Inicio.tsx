@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, ScrollView, Image } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import BotaoCartao from '../componentes/BotaoCartao';
 import { useOficina } from '../context/OficinaContext';
+import { useFonts } from 'expo-font';
 
 // Centralização da paleta de cores para facilitar manutenção e consistência
 const CORES = {
@@ -118,11 +119,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, 
     paddingBottom: 12, 
     backgroundColor: CORES.branco 
+
   },
   logo: { 
     fontSize: 22, 
     fontWeight: '800', 
-    letterSpacing: 0.5 
+    letterSpacing: 0.5,
+ 
   },
   logoLindo: { 
     color: CORES.textoPrincipal 
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
     color: CORES.azul 
   },
   laBadge: { 
-    borderWidth: 1.5, 
+    borderWidth: 1.3, 
     borderColor: CORES.textoPrincipal, 
     paddingHorizontal: 8, 
     paddingVertical: 4, 
@@ -164,7 +167,6 @@ const styles = StyleSheet.create({
     padding: 14, 
     marginHorizontal: 4, 
     alignItems: 'center',
-    // Sombra leve para iOS/Android
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,

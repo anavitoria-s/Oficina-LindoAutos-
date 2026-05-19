@@ -1,9 +1,12 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { enableScreens } from 'react-native-screens';
+import { useFonts } from 'expo-font'; // <-- Importado para carregar as fontes locais
+
 import { OficinaProvider } from './context/OficinaContext';
 import Inicio from './telas/Inicio';
 import Agenda from './telas/Agenda';
@@ -51,6 +54,21 @@ function Tabs() {
 }
 
 export default function App() {
+  // Carrega os arquivos .ttf da Open Sans salvos na sua pasta assets/fonts
+  const [fontsLoaded] = useFonts({
+    'OpenSans-Regular': require('./assets/fonts/OpenSans-VariableFont_wdth,wght.ttf'),
+    'OpenSans-Bold': require('./assets/fonts/OpenSans-VariableFont_wdth,wght.ttf'),
+  });
+
+  // Enquanto os arquivos não são lidos pelo app, mostra a tela de loading
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
   return (
     <OficinaProvider>
       <NavigationContainer>
@@ -66,6 +84,12 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F2F2F7',
+  },
   tabBar: {
     height: 70,
     paddingBottom: 10,
