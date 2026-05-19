@@ -18,7 +18,7 @@ export default function BotaoCartao({ titulo, icone, variante = 'azul', onPress 
 const styles = StyleSheet.create({
   btn: {
     flex: 1,
-    borderWidth: 3,
+    borderWidth: 1.5,
     borderColor: '#000',
     paddingVertical: 28,
     paddingHorizontal: 12,
