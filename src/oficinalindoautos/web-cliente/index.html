@@ -1,13 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LindoAutos - Status do Veículo 🚗</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
-  
   <style>
     :root {
       --bg: #f8f8f8;
@@ -16,292 +13,46 @@
       --primary: #007AFF;
       --success: #2bcf67;
       --warning: #FFD166;
-      --danger: #E53E3E;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Outfit', sans-serif;
-    }
-
-    body {
-      background-color: var(--bg);
-      color: #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .container {
-      background-color: var(--card-bg);
-      border: 4px solid var(--border-color);
-      border-radius: 16px;
-      padding: 30px;
-      width: 100%;
-      max-width: 460px;
-      box-shadow: 8px 8px 0px 0px var(--border-color);
-      transition: all 0.2s ease;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .app-logo {
-      max-width: 220px;
-      max-height: 80px;
-      margin-bottom: 16px;
-      object-fit: contain;
-      background-color: transparent;
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 800;
-      margin-top: 8px;
-    }
-
-    .subtitle {
-      font-size: 13px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .search-box {
-      margin-bottom: 20px;
-    }
-
-    .label {
-      display: block;
-      font-weight: 800;
-      font-size: 14px;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      gap: 10px;
-    }
-
-    .input-placa {
-      flex: 1;
-      font-size: 18px;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 14px;
-      border: 3px solid var(--border-color);
-      border-radius: 8px;
-      outline: none;
-      background-color: #fff;
-      text-align: center;
-      letter-spacing: 2px;
-    }
-
-    .input-placa:focus {
-      background-color: #fffdf5;
-    }
-
-    .btn-consultar {
-      background-color: var(--primary);
-      color: #fff;
-      font-size: 16px;
-      font-weight: 900;
-      padding: 0 20px;
-      border: 3px solid var(--border-color);
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-      transition: transform 0.1s, box-shadow 0.1s;
-    }
-
-    .btn-consultar:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px 0px var(--border-color);
-    }
-
-    .status-card {
-      display: none;
-      border: 3px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 4px 4px 0px 0px var(--border-color);
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    @keyframes popIn {
-      0% { transform: scale(0.9); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .status-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .car-info {
-      font-size: 18px;
-      font-weight: 900;
-    }
-
-    .plate-badge {
-      background-color: #eee;
-      border: 2px solid var(--border-color);
-      border-radius: 6px;
-      padding: 2px 8px;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .status-indicator {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 3px solid var(--border-color);
-      border-radius: 8px;
-      padding: 16px;
-      font-weight: 900;
-      font-size: 16px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-    }
-
-    .status-analise {
-      background-color: var(--warning);
-    }
-    .status-reparo {
-      background-color: var(--primary);
-      color: #fff;
-    }
-    .status-concluido {
-      background-color: var(--success);
-      color: #fff;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1.5px dashed #ccc;
-      font-size: 14px;
-    }
-
-    .info-row:last-child {
-      border-bottom: none;
-    }
-
-    .info-label {
-      font-weight: 800;
-      color: #555;
-    }
-
-    .info-value {
-      font-weight: 600;
-      color: #000;
-    }
-
-    .message {
-      display: none;
-      text-align: center;
-      padding: 20px;
-      border: 3px dashed var(--border-color);
-      border-radius: 12px;
-      font-weight: 800;
-      margin-top: 20px;
-      animation: popIn 0.3s ease;
-    }
-
-    .error-msg {
-      background-color: #fff3f3;
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-
-    .loader {
-      display: none;
-      text-align: center;
-      padding: 20px;
-      font-weight: 800;
-    }
-
-    .spinner {
-      display: inline-block;
-      width: 30px;
-      height: 30px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 8px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .footer {
-      margin-top: 24px;
-      text-align: center;
-      font-size: 11px;
-      color: #888;
-      font-weight: 600;
-    }
-
-    .instructions {
-      background-color: #EBF8FF;
-      border: 3px solid var(--border-color);
-      border-radius: 8px;
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 3px 3px 0px 0px var(--border-color);
-    }
-    .instructions-title {
-      font-size: 15px;
-      font-weight: 800;
-      margin-bottom: 8px;
-      color: #007AFF;
-    }
-    .instructions-list {
-      padding-left: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.6;
-    }
-    .instructions-list li {
-      margin-bottom: 6px;
-    }
-
-    @media (max-width: 400px) {
-      .input-wrapper {
-        flex-direction: column;
-      }
-      .btn-consultar {
-        padding: 12px;
-      }
-      .container {
-        padding: 20px;
-      }
-      .status-indicator {
-        flex-direction: column;
-        text-align: center;
-      }
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
+    body { background-color: var(--bg); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
+    .container { background-color: var(--card-bg); border: 4px solid var(--border-color); border-radius: 16px; padding: 30px; width: 100%; max-width: 460px; box-shadow: 8px 8px 0px 0px var(--border-color); }
+    .header { text-align: center; margin-bottom: 24px; }
+    .app-logo { max-width: 220px; max-height: 80px; margin-bottom: 16px; object-fit: contain; }
+    .title { font-size: 20px; font-weight: 800; }
+    .subtitle { font-size: 13px; color: #666; margin-top: 4px; }
+    .search-box { margin-bottom: 20px; }
+    .label { display: block; font-weight: 800; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; }
+    .input-wrapper { display: flex; gap: 10px; }
+    .input-placa { flex: 1; font-size: 18px; font-weight: 800; text-transform: uppercase; padding: 14px; border: 3px solid var(--border-color); border-radius: 8px; text-align: center; letter-spacing: 2px; }
+    .btn-consultar { background-color: var(--primary); color: #fff; font-size: 16px; font-weight: 900; padding: 0 20px; border: 3px solid var(--border-color); border-radius: 8px; cursor: pointer; box-shadow: 3px 3px 0px 0px var(--border-color); transition: transform 0.1s, box-shadow 0.1s; }
+    .btn-consultar:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px 0px var(--border-color); }
+    .status-card { border: 3px solid var(--border-color); border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 4px 4px 0px 0px var(--border-color); }
+    .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .car-info { font-size: 18px; font-weight: 900; }
+    .plate-badge { background-color: #eee; border: 2px solid var(--border-color); border-radius: 6px; padding: 2px 8px; font-size: 12px; font-weight: 800; }
+    .status-indicator { display: flex; align-items: center; gap: 12px; border: 3px solid var(--border-color); border-radius: 8px; padding: 16px; font-weight: 900; font-size: 16px; text-transform: uppercase; margin-bottom: 16px; box-shadow: 3px 3px 0px 0px var(--border-color); }
+    .status-analise { background-color: var(--warning); }
+    .status-reparo { background-color: var(--primary); color: #fff; }
+    .status-concluido { background-color: var(--success); color: #fff; }
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1.5px dashed #ccc; font-size: 14px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-weight: 800; color: #555; }
+    .info-value { font-weight: 600; }
+    .message { display: none; text-align: center; padding: 20px; border: 3px dashed var(--border-color); border-radius: 12px; font-weight: 800; margin-top: 20px; }
+    .error-msg { background-color: #fff3f3; border-color: #E53E3E; color: #E53E3E; }
+    .loader { display: none; text-align: center; padding: 20px; font-weight: 800; }
+    .spinner { display: inline-block; width: 30px; height: 30px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .footer { margin-top: 24px; text-align: center; font-size: 11px; color: #888; font-weight: 600; }
+    .instructions { background-color: #EBF8FF; border: 3px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 20px; box-shadow: 3px 3px 0px 0px var(--border-color); }
+    .instructions-title { font-size: 15px; font-weight: 800; margin-bottom: 8px; color: var(--primary); }
+    .instructions-list { padding-left: 20px; font-size: 13px; font-weight: 600; line-height: 1.6; }
+    .instructions-list li { margin-bottom: 6px; }
+    @media (max-width: 400px) { .input-wrapper { flex-direction: column; } .btn-consultar { padding: 12px; } .container { padding: 20px; } .status-indicator { flex-direction: column; text-align: center; } }
   </style>
 </head>
 <body>
-
   <div class="container">
     <div class="header">
       <img src="logo.jpeg" alt="Oficina LindoAutos" class="app-logo">
@@ -312,14 +63,7 @@
     <div class="search-box">
       <label class="label">Digite a Placa do Veículo</label>
       <div class="input-wrapper">
-        <input 
-          type="text" 
-          id="placaInput" 
-          class="input-placa" 
-          placeholder="AAA-0000" 
-          maxlength="8" 
-          autofocus
-        >
+        <input type="text" id="placaInput" class="input-placa" placeholder="AAA-0000" maxlength="8" autofocus>
         <button id="btnConsultar" class="btn-consultar" onclick="consultarStatus()">Buscar 🔍</button>
       </div>
     </div>
@@ -333,227 +77,121 @@
       </ol>
     </div>
 
-    <div id="loader" class="loader">
-      <div class="spinner"></div>
-      <div>Buscando informações na nuvem...</div>
-    </div>
-
-    <div id="messageBox" class="message error-msg">
-      Nenhum veículo encontrado com esta placa. Verifique os dados ou fale com a oficina.
-    </div>
-
-    <div id="liveIndicator" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 8px 0; font-size: 11px; font-weight: 800; color: #555; text-transform: uppercase; letter-spacing: 1px;">
-      <span style="width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; display: inline-block; border: 1.5px solid var(--border-color); animation: pulse 1.8s infinite ease-in-out;"></span>
+    <div id="loader" class="loader"><div class="spinner"></div><div>Buscando informações na nuvem...</div></div>
+    <div id="messageBox" class="message error-msg">Nenhum veículo encontrado com esta placa.</div>
+    <div id="liveIndicator" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: 16px 0 8px 0; font-size: 11px; font-weight: 800; color: #555; text-transform: uppercase;">
+      <span style="width: 8px; height: 8px; background-color: var(--success); border-radius: 50%; display: inline-block; border: 1.5px solid var(--border-color);"></span>
       Acompanhamento em tempo real ativo
     </div>
-
     <div id="servicosContainer"></div>
-
-    <div class="footer">
-      LindoAutos © 2026. Todos os direitos reservados.
-    </div>
+    <div class="footer">LindoAutos © 2026. Todos os direitos reservados.</div>
   </div>
 
   <script>
     const FIREBASE_URL = 'https://lindo-autos-default-rtdb.firebaseio.com';
     const $ = (id) => document.getElementById(id);
+    let pollingInterval = null, lastDataString = '';
 
-    let pollingInterval = null;
-    let lastDataString = '';
+    const limparPlaca = p => p.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const textoSeguro = v => { const d = document.createElement('div'); d.textContent = v || '-'; return d.innerHTML; };
 
-    function limparPlaca(placa) {
-      return placa.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    }
-
-    function textoSeguro(valor) {
-      const div = document.createElement('div');
-      div.textContent = valor || '-';
-      return div.innerHTML;
-    }
-
-    function formatarDataBR(isoString) {
-      if (!isoString) return 'Não informado';
-
-      try {
-        const date = new Date(isoString);
-        if (isNaN(date.getTime())) return isoString;
-        const data = date.toLocaleDateString('pt-BR');
-        const hora = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        return `${data} às ${hora}`;
-      } catch(e) {
-        return isoString;
-      }
+    function formatarDataBR(iso) {
+      if (!iso) return 'Não informado';
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? iso : `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
     }
 
     function formatarPlacaExibicao(placa) {
-      const placaLimpa = limparPlaca(placa);
-      return placaLimpa.length === 7
-        ? `${placaLimpa.substring(0, 3)}-${placaLimpa.substring(3)}`
-        : placaLimpa;
+      const p = limparPlaca(placa);
+      return p.length === 7 ? `${p.substring(0, 3)}-${p.substring(3)}` : p;
     }
 
-    function dadosDoStatus(status) {
+    function criarCardOS(os, placaChave) {
       const statusMap = {
         ANALISE: ['status-analise', '🔎 Em Análise Técnica'],
         REPARO: ['status-reparo', '⚙️ Em Andamento'],
         CONCLUIDO: ['status-concluido', '🎉 Pronto para Retirada!'],
       };
-
-      return statusMap[status] || ['', textoSeguro(status || 'Status não informado')];
-    }
-
-    function criarCardOS(os, placaChave) {
-      const [statusClass, statusTexto] = dadosDoStatus(os.status);
-      const rotuloData = os.status === 'REPARO' ? 'Em andamento desde' : 'Recebido em';
-
-      const conclusaoHTML = os.dataConclusao 
-        ? `<div class="info-row">
-             <div class="info-label">Concluído em</div>
-             <div class="info-value" style="color: #2bcf67; font-weight: 900;">${textoSeguro(formatarDataBR(os.dataConclusao))}</div>
-           </div>` 
-        : '';
+      const [statusClass, statusTexto] = statusMap[os.status] || ['', os.status || 'Sem Status'];
+      const conclusaoHTML = os.dataConclusao ? `<div class="info-row"><div class="info-label">Concluído em</div><div class="info-value" style="color:var(--success);font-weight:900;">${textoSeguro(formatarDataBR(os.dataConclusao))}</div></div>` : '';
 
       return `
-        <div class="status-card" style="display:block;">
+        <div class="status-card">
           <div class="status-header">
-            <div class="car-info">${textoSeguro(os.carro || 'Veículo')}</div>
+            <div class="car-info">${textoSeguro(os.carro)}</div>
             <div class="plate-badge">${textoSeguro(formatarPlacaExibicao(os.placa || placaChave))}</div>
           </div>
           <div class="status-indicator ${statusClass}">${statusTexto}</div>
-          <div class="info-row">
-            <div class="info-label">Cliente</div>
-            <div class="info-value">${textoSeguro(os.cliente)}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Serviço Solicitado</div>
-            <div class="info-value">${textoSeguro(os.servico)}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">Valor Estimado</div>
-            <div class="info-value">${textoSeguro(os.valor)}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">${rotuloData}</div>
-            <div class="info-value">${textoSeguro(formatarDataBR(os.dataInicio))}</div>
-          </div>
+          <div class="info-row"><div class="info-label">Cliente</div><div class="info-value">${textoSeguro(os.cliente)}</div></div>
+          <div class="info-row"><div class="info-label">Serviço Solicitado</div><div class="info-value">${textoSeguro(os.servico)}</div></div>
+          <div class="info-row"><div class="info-label">Valor Estimado</div><div class="info-value">${textoSeguro(os.valor)}</div></div>
+          <div class="info-row"><div class="info-label">${os.status === 'REPARO' ? 'Iniciado em' : 'Recebido em'}</div><div class="info-value">${textoSeguro(formatarDataBR(os.dataInicio))}</div></div>
           ${conclusaoHTML}
-        </div>
-      `;
+        </div>`;
     }
 
-    function pararAtualizacao() {
-      if (!pollingInterval) return;
-      clearInterval(pollingInterval);
-      pollingInterval = null;
-    }
-
-    function mostrarMensagem(texto) {
-      $('messageBox').innerText = texto;
-      $('messageBox').style.display = 'block';
-    }
-
+    function mostrarMensagem(t) { $('messageBox').innerText = t; $('messageBox').style.display = 'block'; }
+    
     function limparTela() {
       $('servicosContainer').innerHTML = '';
       $('messageBox').style.display = 'none';
       $('liveIndicator').style.display = 'none';
       $('loader').style.display = 'block';
-
-      if ($('instructionsBox')) {
-        $('instructionsBox').style.display = 'none';
-      }
+      if ($('instructionsBox')) $('instructionsBox').style.display = 'none';
     }
 
     function renderizarServicos(data, placaChave) {
-      const listaOS = data.id && data.status ? [data] : Object.values(data || {});
-
-      if (listaOS.length === 0) {
-        $('servicosContainer').innerHTML = '';
-        mostrarMensagem('Nenhum serviço encontrado para esta placa.');
-        return false;
-      }
-
-      $('servicosContainer').innerHTML = listaOS
-        .map(os => criarCardOS(os, placaChave))
-        .join('');
-
+      const lista = data.id && data.status ? [data] : Object.values(data || {});
+      if (lista.length === 0) { mostrarMensagem('Nenhum serviço encontrado.'); return false; }
+      $('servicosContainer').innerHTML = lista.map(os => criarCardOS(os, placaChave)).join('');
       return true;
     }
 
-    async function buscarPorPlaca(placaChave) {
-      const response = await fetch(`${FIREBASE_URL}/ordens/${placaChave}.json`);
-      if (!response.ok) throw new Error('Erro na requisição');
-      return response.json();
-    }
+    const buscarPorPlaca = async (p) => (await fetch(`${FIREBASE_URL}/ordens/${p}.json`)).json();
 
     async function consultarStatus() {
-      const plateRaw = $('placaInput').value.trim();
-      
-      if (!plateRaw) return;
-
-      pararAtualizacao();
+      const input = $('placaInput').value.trim();
+      if (!input) return;
+      if (pollingInterval) clearInterval(pollingInterval);
       limparTela();
-
-      const placaChave = limparPlaca(plateRaw);
+      const placa = limparPlaca(input);
 
       try {
-        const data = await buscarPorPlaca(placaChave);
+        const data = await buscarPorPlaca(placa);
         $('loader').style.display = 'none';
-
-        if (!data) {
-          mostrarMensagem('Nenhum veículo encontrado com esta placa no momento.');
-          lastDataString = '';
-          return;
-        }
+        if (!data) { mostrarMensagem('Nenhum veículo encontrado com esta placa.'); return; }
 
         lastDataString = JSON.stringify(data);
-        if (!renderizarServicos(data, placaChave)) return;
+        if (!renderizarServicos(data, placa)) return;
 
         $('liveIndicator').style.display = 'flex';
-        pollingInterval = setInterval(() => {
-          atualizarStatusSilenciosamente(placaChave);
+        pollingInterval = setInterval(async () => {
+          try {
+            const dataAt = await buscarPorPlaca(placa);
+            const dataString = JSON.stringify(dataAt);
+            if (dataString === lastDataString) return;
+            lastDataString = dataString;
+            if (!dataAt) {
+              $('servicosContainer').innerHTML = '';
+              $('liveIndicator').style.display = 'none';
+              mostrarMensagem('Serviço finalizado ou removido.');
+              clearInterval(pollingInterval);
+              return;
+            }
+            renderizarServicos(dataAt, placa);
+          } catch(e) {}
         }, 3000);
-
       } catch (error) {
         $('loader').style.display = 'none';
-        mostrarMensagem('Erro ao conectar ao servidor. Verifique sua internet.');
-        console.error(error);
-      }
-    }
-
-    async function atualizarStatusSilenciosamente(placaChave) {
-      try {
-        const data = await buscarPorPlaca(placaChave);
-        const dataString = JSON.stringify(data);
-
-        if (dataString === lastDataString) return;
-        lastDataString = dataString;
-
-        if (!data) {
-          $('servicosContainer').innerHTML = '';
-          $('liveIndicator').style.display = 'none';
-          mostrarMensagem('Serviço finalizado ou removido.');
-          pararAtualizacao();
-          return;
-        }
-
-        renderizarServicos(data, placaChave);
-      } catch (error) {
-        console.error('Erro na atualização em segundo plano:', error);
+        mostrarMensagem('Erro ao conectar ao servidor. Verifique sua conexão.');
       }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const placaParam = urlParams.get('placa');
-      if (placaParam) {
-        $('placaInput').value = placaParam;
-        consultarStatus();
-      }
+      const p = new URLSearchParams(window.location.search).get('placa');
+      if (p) { $('placaInput').value = p; consultarStatus(); }
     });
-
-    $('placaInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') consultarStatus();
-    });
+    $('placaInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') consultarStatus(); });
   </script>
 </body>
 </html>
