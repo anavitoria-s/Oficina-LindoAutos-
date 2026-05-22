@@ -1,8 +1,10 @@
-# Oficina-LindoAutos
+# Oficina LindoAutos 🚗🎓
 
-Aplicativo para gestão de uma oficina, desenvolvido com Expo, React Native e TypeScript.
+**Este é um projeto universitário desenvolvido para fins acadêmicos e de aprendizado.**
 
-O projeto permite controlar agendamentos, orçamentos, clientes e ordens de serviço. Também possui uma página web para o cliente consultar o andamento do serviço pela placa do veículo.
+Aplicativo para gestão de uma oficina mecânica e centro automotivo, desenvolvido com **Expo, React Native e TypeScript**.
+
+O projeto permite controlar agendamentos, orçamentos, clientes e ordens de serviço localmente com banco de dados SQLite. Ele também possui uma integração com o Firebase para sincronização em tempo real e uma página web associada para o cliente consultar o andamento do serviço pela placa do veículo.
 
 - agendar serviços
 - criar orçamentos
