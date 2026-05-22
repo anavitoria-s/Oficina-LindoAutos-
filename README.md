@@ -108,6 +108,22 @@ As telas do aplicativo ficam em:
 src/oficinalindoautos/telas
 ```
 
+### Como alterar Cores e Estilos no Aplicativo
+
+O aplicativo utiliza o sistema nativo do React Native para estilização (`StyleSheet.create`). 
+
+- **Onde ficam as cores e estilos?** No final de cada arquivo de tela (ex: `Inicio.tsx`, `Agenda.tsx`, etc.) e de componentes (ex: `BotaoCartao.tsx`), existe uma constante chamada `styles` criada com `StyleSheet.create`.
+- **Como alterar uma cor?** Basta procurar pela propriedade de estilo correspondente, como:
+  - `backgroundColor` (cor de fundo)
+  - `color` (cor do texto)
+  - `borderColor` (cor da borda)
+- **Cores padrão do app:**
+  - Azul Destaque/Ativo: `#007AFF`
+  - Bordas e Textos Fortes: `#000000` (Preto) e `#ffffff` (Branco) para dar um visual limpo e contrastante "estilo Neobrutalismo".
+  - Vermelho de Alerta (Exclusão/Limpeza): `#E53E3E`
+
+- **Navegação (Abas inferiores):** Se quiser mudar as cores dos botões de navegação inferiores ou o fundo da barra, edite o arquivo `App.tsx` onde o `Tab.Navigator` e a constante `styles` do `tabBar` estão configurados.
+
 Arquivos mais comuns para alteração:
 
 - `Inicio.tsx` — tela inicial e resumo dos dados.
