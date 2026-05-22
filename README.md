@@ -242,11 +242,30 @@ O Firebase Hosting está configurado para publicar a pasta:
 src/oficinalindoautos/web-cliente
 ```
 
-Para publicar o portal, use o Firebase CLI a partir da raiz do projeto:
+### Como Publicar as Alterações no Firebase (Deploy)
 
-```bash
-firebase deploy
-```
+Para que qualquer alteração feita no arquivo `index.html` vá para a internet, você precisa ter as ferramentas do Firebase instaladas. Siga este passo a passo:
+
+1. **Instalar o Firebase CLI** (necessário apenas na primeira vez):
+   Abra o seu terminal e instale as ferramentas globalmente:
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Fazer Login na sua conta Firebase**:
+   Na raiz do projeto, execute o comando abaixo para conectar o terminal à sua conta Google onde o Firebase foi criado:
+   ```bash
+   firebase login
+   ```
+   *Um navegador se abrirá para você autorizar o acesso.*
+
+3. **Publicar (Fazer o Deploy)**:
+   Ainda na raiz do projeto (onde fica o arquivo `firebase.json`), execute:
+   ```bash
+   firebase deploy
+   ```
+
+O Firebase enviará o arquivo `index.html` da pasta `web-cliente` diretamente para os links de produção (`lindo-autos.web.app`).
 
 ## Observações
 
