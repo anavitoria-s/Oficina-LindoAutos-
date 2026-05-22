@@ -37,6 +37,19 @@ O projeto permite controlar agendamentos, orçamentos, clientes e ordens de serv
 - Firebase Realtime Database
 - Firebase Hosting
 
+### Principais Dependências do Projeto
+
+Para ajudar os estudantes a compreenderem o ecossistema do app, aqui estão as principais bibliotecas (dependências) instaladas no `package.json` e o papel de cada uma:
+
+* **`expo` (~54.0.33)**: O framework base que facilita o desenvolvimento React Native, dando acesso a APIs nativas do celular sem precisar mexer em código Java/Kotlin ou Swift/Objective-C.
+* **`expo-sqlite` (~16.0.10)**: Biblioteca que cria e gerencia o banco de dados SQL local direto no armazenamento do celular. É onde ficam salvos os clientes, agendamentos e ordens de serviço.
+* **`expo-font` (~14.0.11)**: Utilizada para carregar fontes personalizadas (como as fontes variáveis *Open Sans*) dinamicamente durante a inicialização do app.
+* **`@react-navigation/native` & `@react-navigation/bottom-tabs` & `@react-navigation/native-stack`**: O conjunto de bibliotecas oficial para controle de telas e navegação do app. 
+  * `native-stack`: Permite abrir telas sobrepostas com efeito de transição deslizante (como a tela de *Novo Agendamento*).
+  * `bottom-tabs`: Cria o menu de navegação inferior com ícones animados na barra inferior do app.
+* **`@expo/vector-icons` (^15.0.3)**: Fornece o conjunto de ícones prontos (da coleção *Ionicons*) usados no menu inferior de abas e nos botões.
+* **`react-native-safe-area-context`**: Garante que o conteúdo do app não fique escondido sob barras de status, "entalhes" (*notches*) da câmera ou botões virtuais do sistema do celular.
+
 ## Rodar o app
 
 No diretório `src/oficinalindoautos` execute:
