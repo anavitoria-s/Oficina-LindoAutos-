@@ -17,6 +17,7 @@ import Clientes from './telas/Clientes';
 import NovoAgendamento from './telas/NovoAgendamento';
 import NovoOrcamento from './telas/NovoOrcamento';
 
+
 enableScreens();
 
 const Tab = createBottomTabNavigator();
