@@ -298,9 +298,9 @@ const styles = StyleSheet.create({
   btnNova: {
     backgroundColor: '#007AFF',
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: '#0360c5',
     borderRadius: 4,
-    paddingHorizontal: 12,
+    paddingHorizontal: 13,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -426,12 +426,17 @@ const styles = StyleSheet.create({
   btnCancelarTexto: {
     color: '#000',
     fontWeight: '700',
+    paddingHorizontal: 8,
   },
   btnSalvar: {
     backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    borderColor:'#0360c5',
   },
   btnDesativado: {
     backgroundColor: '#aacfff',
+    paddingHorizontal: 12,
+    borderColor:'#95c0f8',
   },
   btnSalvarTexto: {
     color: '#fff',

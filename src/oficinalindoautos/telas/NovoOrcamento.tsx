@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#aacfff',
     shadowOpacity: 0,
     elevation: 0,
+    borderColor:'#96c0f8',
   },
   botaoTexto: { color: '#fff', fontSize: 16, fontWeight: '800' },
 });

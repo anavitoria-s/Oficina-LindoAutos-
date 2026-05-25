@@ -421,9 +421,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
+    paddingHorizontal: 10,
   },
   btnCrmEdit: {
     backgroundColor: '#FFD166',
+    borderColor:'#f6c042',
   },
   btnCrmEditText: {
     color: '#000',

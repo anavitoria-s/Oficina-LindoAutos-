@@ -149,21 +149,21 @@ export default function Orcamentos() {
                         enviarMensagemWhatsApp(item.telefone, msg);
                       }}
                     >
-                      <Text style={styles.btnWhatsAppText}>WhatsApp 💬</Text>
+                      <Text style={styles.btnWhatsAppText}>WhatsApp </Text>
                     </PressableAnimado>
 
                     <PressableAnimado 
                       style={[styles.btnSecondary, styles.btnEdit]} 
                       onPress={() => iniciarEdicao(item)}
                     >
-                      <Text style={styles.btnEditText}>Editar ✏️</Text>
+                      <Text style={styles.btnEditText}>Editar </Text>
                     </PressableAnimado>
 
                     <PressableAnimado 
                       style={[styles.btnSecondary, styles.btnDelete]} 
                       onPress={() => excluirOrcamento(item.id)}
                     >
-                      <Text style={styles.btnDeleteText}>Excluir 🗑️</Text>
+                      <Text style={styles.btnDeleteText}>Excluir </Text>
                     </PressableAnimado>
                   </View>
                 </View>
@@ -292,9 +292,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
     marginHorizontal: 4,
+    paddingHorizontal: 39,
   },
   btnReject: {
-    backgroundColor: '#fff',
+    backgroundColor: '#5755553c',
+    borderColor: '#5453533c',
   },
   btnRejectText: {
     color: '#000',
@@ -303,6 +305,7 @@ const styles = StyleSheet.create({
   },
   btnApprove: {
     backgroundColor: '#2bcf67',
+    borderColor: '#23af56',
   },
   btnApproveText: {
     color: '#fff',
@@ -334,10 +337,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 4,
+    paddingHorizontal: 23,
   },
   btnWhatsApp: {
     backgroundColor: '#EFFFEC',
-    borderColor: '#2bcf67',
+    borderColor: '#8cf7b3',
+    paddingHorizontal: 20,
   },
   btnWhatsAppText: {
     color: '#2bcf67',
@@ -345,7 +350,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   btnDelete: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#f6e6e6',
     borderColor: '#E53E3E',
   },
   btnDeleteText: {
@@ -355,6 +360,7 @@ const styles = StyleSheet.create({
   },
   btnEdit: {
     backgroundColor: '#FFD166',
+    borderColor:'#f6c042',
   },
   btnEditText: {
     color: '#000',

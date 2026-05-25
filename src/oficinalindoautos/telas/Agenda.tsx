@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000',
     marginHorizontal: 4,
+    paddingHorizontal: 11,
   },
   btnComplete: {
     backgroundColor: '#000',
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   btnDelete: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: '#f7d1d1',
     borderColor: '#E53E3E',
   },
   btnDeleteText: {
@@ -298,6 +299,7 @@ const styles = StyleSheet.create({
   },
   btnEdit: {
     backgroundColor: '#FFD166',
+    borderColor: '#f6c042',
   },
   btnEditText: {
     color: '#000',
