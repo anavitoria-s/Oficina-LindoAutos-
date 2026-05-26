@@ -7,9 +7,9 @@ import { formatarDataHoraBrasileira } from '../utils/formatacao';
 import PressableAnimado from '../componentes/PressableAnimado';
 
 const STATUS_CONFIG: Record<Agendamento['status'], { label: string; color: string; bg: string; next?: Agendamento['status'][]; actionLabel?: string }> = {
-  AGENDADO: { label: 'Agendado', color: '#888', bg: '#f0f0f0', next: ['CONFIRMADO', 'CANCELADO'], actionLabel: 'Confirmar ✅' },
+  AGENDADO: { label: 'Agendado', color: '#888', bg: '#f0f0f0', next: ['EM_ATENDIMENTO', 'CANCELADO'], actionLabel: 'Iniciar ⚙️' },
   CONFIRMADO: { label: 'Confirmado', color: '#007AFF', bg: '#E3F2FD', next: ['EM_ATENDIMENTO', 'NAO_COMPARECEU'], actionLabel: 'Iniciar ⚙️' },
-  EM_ATENDIMENTO: { label: 'Em Atendimento', color: '#E6A23C', bg: '#FFF8E1', next: ['CONCLUIDO'], actionLabel: 'Concluir ✅' },
+  EM_ATENDIMENTO: { label: 'Em Atendimento', color: '#E6A23C', bg: '#FFF8E1', next: ['CONCLUIDO', 'NAO_COMPARECEU'], actionLabel: 'Concluir ✅' },
   CONCLUIDO: { label: 'Concluído', color: '#2bcf67', bg: '#E8F5E9' },
   NAO_COMPARECEU: { label: 'Não Compareceu', color: '#E53E3E', bg: '#FFEBEE' },
   CANCELADO: { label: 'Cancelado', color: '#666', bg: '#f5f5f5' },
