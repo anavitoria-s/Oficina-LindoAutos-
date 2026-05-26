@@ -350,35 +350,38 @@ export default function Agenda() {
         onRequestClose={() => { setRemarcando(null); setNovaData(''); }}
       >
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>⏰ Remarcar Atendimento</Text>
-            
-            {remarcando && (
-              <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 14, color: '#666' }}>Cliente: <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.cliente}</Text></Text>
-                <Text style={{ fontSize: 14, color: '#666' }}>Veículo: <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.carro}</Text></Text>
-                <Text style={{ fontSize: 14, color: '#666' }}>Data atual: <Text style={{ fontWeight: '800', color: '#E53E3E' }}>{remarcando.data}</Text></Text>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} keyboardShouldPersistTaps="handled">
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>⏰ Remarcar Atendimento</Text>
+              
+              {remarcando && (
+                <View style={{ marginBottom: 16, padding: 12, backgroundColor: '#f9f9f9', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>👤 <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.cliente}</Text></Text>
+                  <Text style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>🚗 <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.carro}</Text></Text>
+                  <Text style={{ fontSize: 14, color: '#666' }}>📅 Data atual: <Text style={{ fontWeight: '800', color: '#E53E3E' }}>{remarcando.data}</Text></Text>
+                </View>
+              )}
+
+              <Text style={styles.modalLabel}>Nova Data e Horário</Text>
+              <TextInput 
+                style={[styles.modalInput, { fontSize: 16, fontWeight: '700' }]} 
+                value={novaData} 
+                onChangeText={(text) => setNovaData(formatarDataInput(text))}
+                placeholder="DD/MM/AAAA às HH:mm"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+              />
+
+              <View style={styles.modalBtnRow}>
+                <PressableAnimado style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => { setRemarcando(null); setNovaData(''); }}>
+                  <Text style={styles.modalBtnCancelText}>Cancelar</Text>
+                </PressableAnimado>
+                <PressableAnimado style={[styles.modalBtn, styles.modalBtnSave]} onPress={confirmarRemarcacao}>
+                  <Text style={styles.modalBtnSaveText}>Confirmar ⏰</Text>
+                </PressableAnimado>
               </View>
-            )}
-
-            <Text style={styles.modalLabel}>Nova Data e Horário</Text>
-            <TextInput 
-              style={[styles.modalInput, { fontSize: 16 }]} 
-              value={novaData} 
-              onChangeText={(text) => setNovaData(formatarDataInput(text))}
-              placeholder="DD/MM/AAAA às HH:mm"
-              autoFocus
-            />
-
-            <View style={styles.modalBtnRow}>
-              <PressableAnimado style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => { setRemarcando(null); setNovaData(''); }}>
-                <Text style={styles.modalBtnCancelText}>Cancelar</Text>
-              </PressableAnimado>
-              <PressableAnimado style={[styles.modalBtn, styles.modalBtnSave]} onPress={confirmarRemarcacao}>
-                <Text style={styles.modalBtnSaveText}>Confirmar Remarcação ⏰</Text>
-              </PressableAnimado>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
