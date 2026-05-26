@@ -7,9 +7,9 @@ export function limparPlaca(placa: string): string {
   return placa.replace(/[^A-Za-zA-Z0-9]/g, '').toUpperCase();
 }
 
-export async function syncOSToCloud(ordem: OrdemServico): Promise<void> {
+export async function syncOSToCloud(ordem: OrdemServico): Promise<boolean> {
   if (!ordem.placa || !ordem.placa.trim()) {
-    return;
+    return false;
   }
 
   const placaChave = limparPlaca(ordem.placa);
@@ -31,23 +31,22 @@ export async function syncOSToCloud(ordem: OrdemServico): Promise<void> {
         status: ordem.status,
         dataInicio: ordem.dataInicio,
         dataConclusao: ordem.dataConclusao,
+        telefone: ordem.telefone,
+        valorPecas: ordem.valorPecas,
+        valorMaoObra: ordem.valorMaoObra,
         ultimaAtualizacao: new Date().toISOString(),
       }),
     });
 
     if (!response.ok) {
       console.warn('Erro ao sincronizar com Firebase:', response.statusText);
-      Alert.alert(
-        "Aviso de Sincronização ⚠️", 
-        "Houve um problema ao salvar os dados no Portal do Cliente. O status no site pode estar desatualizado."
-      );
+      return false;
     }
+
+    return true;
   } catch (error) {
     console.warn('Falha na conexão de rede ao sincronizar com Firebase:', error);
-    Alert.alert(
-      "Sem Conexão com a Internet 📶", 
-      "Os dados foram salvos no seu celular, mas não conseguimos enviá-los para o Portal Web do Cliente. Verifique a internet e edite a OS novamente para re-enviar."
-    );
+    return false;
   }
 }
 

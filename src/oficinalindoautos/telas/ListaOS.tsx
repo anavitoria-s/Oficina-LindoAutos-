@@ -43,9 +43,9 @@ export default function ListaOS() {
     setEditTelefone(item.telefone);
   };
 
-  const salvarEdicao = () => {
+  const salvarEdicao = async () => {
     if (osEditando) {
-      editarOrdemServico(osEditando.id, {
+      await editarOrdemServico(osEditando.id, {
         carro: editCarro,
         placa: editPlaca,
         servico: editServico,
@@ -82,14 +82,14 @@ export default function ListaOS() {
     return isNaN(limpo) ? 0 : limpo;
   };
 
-  const salvarOS = () => {
+  const salvarOS = async () => {
     if (!cliente || !telefone || !carro || !placa || !servico || !valor) {
       return;
     }
 
     const valorFormatado = `R$ ${getNumeroLimpo(valor).toFixed(2).replace('.', ',')}`;
 
-    adicionarOrdemServico({ 
+    await adicionarOrdemServico({ 
       cliente, 
       carro, 
       placa: placa.toUpperCase(),

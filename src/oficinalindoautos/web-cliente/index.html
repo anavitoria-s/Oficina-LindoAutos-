@@ -125,6 +125,7 @@
           <div class="info-row"><div class="info-label">Cliente</div><div class="info-value">${textoSeguro(os.cliente)}</div></div>
           <div class="info-row"><div class="info-label">Serviço Solicitado</div><div class="info-value">${textoSeguro(os.servico)}</div></div>
           <div class="info-row"><div class="info-label">Valor Estimado</div><div class="info-value">${textoSeguro(os.valor)}</div></div>
+          <div class="info-row"><div class="info-label">Telefone da Oficina</div><div class="info-value" style="color:var(--primary);font-weight:800;">${textoSeguro(os.telefone)}</div></div>
           <div class="info-row"><div class="info-label">${os.status === 'REPARO' ? 'Iniciado em' : 'Recebido em'}</div><div class="info-value">${textoSeguro(formatarDataBR(os.dataInicio))}</div></div>
           ${conclusaoHTML}
         </div>`;

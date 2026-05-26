@@ -61,9 +61,9 @@ type OficinaContextType = {
   ordensServico: OrdemServico[];
   adicionarAgendamento: (dados: Omit<Agendamento, 'id' | 'status'>) => void;
   adicionarOrcamento: (dados: Omit<Orcamento, 'id' | 'status'>) => void;
-  adicionarOrdemServico: (dados: Omit<OrdemServico, 'id' | 'status' | 'dataInicio'>) => void;
+  adicionarOrdemServico: (dados: Omit<OrdemServico, 'id' | 'status' | 'dataInicio'>) => Promise<void>;
   adicionarCliente: (dados: Omit<Cliente, 'id' | 'ultimaVisita'>) => void;
-  atualizarStatusOrdemServico: (id: string, status: 'ANALISE' | 'REPARO' | 'CONCLUIDO') => void;
+  atualizarStatusOrdemServico: (id: string, status: 'ANALISE' | 'REPARO' | 'CONCLUIDO') => Promise<void>;
   atualizarStatusAgendamento: (id: string, status: 'PENDENTE' | 'CONCLUIDO') => void;
   atualizarStatusOrcamento: (id: string, status: 'ABERTO' | 'APROVADO' | 'REJEITADO') => void;
   excluirAgendamento: (id: string) => void;
@@ -73,7 +73,7 @@ type OficinaContextType = {
   limparDados: () => Promise<void>;
   editarAgendamento: (id: string, dados: { carro: string; servico: string; data: string; telefone: string; placa?: string }) => void;
   editarOrcamento: (id: string, dados: { carro: string; descricao: string; valor: string; telefone: string; placa?: string }) => void;
-  editarOrdemServico: (id: string, dados: { carro: string; servico: string; valor: string; telefone: string; placa: string }) => void;
+  editarOrdemServico: (id: string, dados: { carro: string; servico: string; valor: string; telefone: string; placa: string }) => Promise<void>;
   editarCliente: (id: string, dados: { nome: string; telefone: string; carro: string }) => void;
 };
 
@@ -273,7 +273,7 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const adicionarOrdemServico = (dados: Omit<OrdemServico, 'id' | 'status' | 'dataInicio'>) => {
+  const adicionarOrdemServico = async (dados: Omit<OrdemServico, 'id' | 'status' | 'dataInicio'>) => {
     const id = String(Date.now());
     const status = 'ANALISE';
     const dataInicioISO = new Date().toISOString();
@@ -301,7 +301,16 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
         placa: placaVal,
         dataConclusao: '',
       };
-      syncOSToCloud(novaOS);
+
+      if (placaVal.trim()) {
+        const sincronizado = await syncOSToCloud(novaOS);
+        if (!sincronizado) {
+          Alert.alert(
+            "Aviso de Sincronização ⚠️",
+            "OS salva no celular, mas houve falha ao sincronizar com o portal web. Verifique sua conexão e edite a OS para tentar novamente."
+          );
+        }
+      }
 
       carregarDados();
     } catch (e) {
@@ -310,7 +319,7 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const atualizarStatusOrdemServico = (id: string, status: 'ANALISE' | 'REPARO' | 'CONCLUIDO') => {
+  const atualizarStatusOrdemServico = async (id: string, status: 'ANALISE' | 'REPARO' | 'CONCLUIDO') => {
     try {
       if (status === 'CONCLUIDO') {
         const concluidoEm = new Date().toISOString();
@@ -320,8 +329,14 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
       }
       
       const osAtualizada = db.getFirstSync<OrdemServico>('SELECT * FROM ordens_servico WHERE id = ?', [id]);
-      if (osAtualizada) {
-        syncOSToCloud(osAtualizada);
+      if (osAtualizada && osAtualizada.placa.trim()) {
+        const sincronizado = await syncOSToCloud(osAtualizada);
+        if (!sincronizado) {
+          Alert.alert(
+            "Aviso de Sincronização ⚠️",
+            "Status atualizado no celular, mas não sincronizou com o portal web. Verifique sua conexão."
+          );
+        }
       }
 
       carregarDados();
@@ -477,7 +492,7 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const editarOrdemServico = (id: string, dados: { carro: string; servico: string; valor: string; telefone: string; placa: string }) => {
+  const editarOrdemServico = async (id: string, dados: { carro: string; servico: string; valor: string; telefone: string; placa: string }) => {
     try {
       const osAntiga = db.getFirstSync<OrdemServico>('SELECT * FROM ordens_servico WHERE id = ?', [id]);
       const placaAntiga = osAntiga?.placa;
@@ -489,15 +504,26 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
 
       const osAtualizada = db.getFirstSync<OrdemServico>('SELECT * FROM ordens_servico WHERE id = ?', [id]);
       if (osAtualizada) {
+        // Se trocou a placa, primeiro deleta a OS antiga no Firebase, depois cria a nova
         if (placaAntiga && placaAntiga.toUpperCase() !== osAtualizada.placa.toUpperCase()) {
-          deleteOSFromCloud(placaAntiga, id);
+          await deleteOSFromCloud(placaAntiga, id);
         }
-        syncOSToCloud(osAtualizada);
+        
+        if (osAtualizada.placa.trim()) {
+          const sincronizado = await syncOSToCloud(osAtualizada);
+          if (!sincronizado) {
+            Alert.alert(
+              "Aviso de Sincronização ⚠️",
+              "OS atualizada no celular, mas não sincronizou com o portal web. Verifique sua conexão e edite novamente."
+            );
+          }
+        }
       }
 
       carregarDados();
     } catch (e) {
       console.error('Erro ao editar ordem de serviço no SQLite', e);
+      Alert.alert("Erro no Dispositivo ⚠️", "Não foi possível editar a Ordem de Serviço.");
     }
   };
 

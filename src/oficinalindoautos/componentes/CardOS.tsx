@@ -26,9 +26,9 @@ export default function CardOS({ ordem, onEdit }: Props) {
 
   const statusInfo = getStatusInfo(ordem.status);
 
-  const handleNextStatus = () => {
+  const handleNextStatus = async () => {
     if (statusInfo.nextStatus) {
-      atualizarStatusOrdemServico(ordem.id, statusInfo.nextStatus as any);
+      await atualizarStatusOrdemServico(ordem.id, statusInfo.nextStatus as any);
     }
   };
 
