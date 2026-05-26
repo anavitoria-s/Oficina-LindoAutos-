@@ -181,6 +181,11 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
           db.execSync('ALTER TABLE agendamentos ADD COLUMN concluidoEm TEXT NOT NULL DEFAULT ""'); 
         } catch (err) {} 
       }
+      try { db.getFirstSync('SELECT atualizadoEm FROM agendamentos LIMIT 1'); } catch (e) { 
+        try { 
+          db.execSync('ALTER TABLE agendamentos ADD COLUMN atualizadoEm TEXT NOT NULL DEFAULT ""'); 
+        } catch (err) {} 
+      }
       try { db.getFirstSync('SELECT criadoEm FROM orcamentos LIMIT 1'); } catch (e) { 
         try { 
           db.execSync('ALTER TABLE orcamentos ADD COLUMN criadoEm TEXT NOT NULL DEFAULT ""'); 
