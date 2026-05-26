@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Animated, Modal, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, Animated, Modal, KeyboardAvoidingView, Platform, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOficina, Agendamento } from '../context/OficinaContext';
 import { enviarMensagemWhatsApp } from '../utils/whatsapp';
@@ -126,33 +126,36 @@ export default function Agenda() {
     }
   };
 
-  const agendamentosFiltrados = agendamentos.filter(item => {
-    const matchBusca = item.cliente.toLowerCase().includes(busca.toLowerCase()) ||
-                       item.carro.toLowerCase().includes(busca.toLowerCase()) ||
-                       item.servico.toLowerCase().includes(busca.toLowerCase());
-    
-    if (!matchBusca) return false;
-    if (statusFiltro && item.status !== statusFiltro) return false;
-    
-    if (abaAtiva === 'hoje') return isHoje(item.data);
-    if (abaAtiva === 'futuro') return isFuturo(item.data);
-    if (abaAtiva === 'passado') return isPassado(item.data);
-    return true;
-  });
+  const agendamentosFiltrados = useMemo(() => {
+    return agendamentos.filter(item => {
+      const matchBusca = item.cliente.toLowerCase().includes(busca.toLowerCase()) ||
+                         item.carro.toLowerCase().includes(busca.toLowerCase()) ||
+                         item.servico.toLowerCase().includes(busca.toLowerCase());
+      
+      if (!matchBusca) return false;
+      if (statusFiltro && item.status !== statusFiltro) return false;
+      
+      if (abaAtiva === 'hoje') return isHoje(item.data);
+      if (abaAtiva === 'futuro') return isFuturo(item.data);
+      if (abaAtiva === 'passado') return isPassado(item.data);
+      return true;
+    });
+  }, [agendamentos, busca, statusFiltro, abaAtiva]);
 
-  const contagem = {
+  const contagem = useMemo(() => ({
     hoje: agendamentos.filter(a => isHoje(a.data)).length,
     futuro: agendamentos.filter(a => isFuturo(a.data)).length,
     passado: agendamentos.filter(a => isPassado(a.data)).length,
     todos: agendamentos.length,
-  };
+  }), [agendamentos]);
 
-  const renderizarCard = (item: Agendamento) => {
-    const config = STATUS_CONFIG[item.status];
-    const ehHoje = isHoje(item.data);
-    
-    return (
-      <View key={item.id} style={[styles.card, ehHoje && styles.cardHoje]}>
+  const renderizarCard = useMemo(() => {
+    return ({ item }: { item: Agendamento }) => {
+      const config = STATUS_CONFIG[item.status];
+      const ehHoje = isHoje(item.data);
+      
+      return (
+        <View style={[styles.card, ehHoje && styles.cardHoje]}>
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={styles.cardTitle}>{item.carro}</Text>
@@ -238,9 +241,10 @@ export default function Agenda() {
             <Text style={styles.btnWhatsAppText}>💬 Enviar Lembrete WhatsApp</Text>
           </PressableAnimado>
         )}
-      </View>
-    );
-  };
+        </View>
+      );
+    };
+  }, [atualizarStatusAgendamento, excluirAgendamento, editarAgendamento]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -269,7 +273,7 @@ export default function Agenda() {
                   {aba === 'hoje' ? `📍 Hoje (${contagem.hoje})` : 
                    aba === 'futuro' ? `🔜 Futuro (${contagem.futuro})` :
                    aba === 'passado' ? `📜 Passado (${contagem.passado})` :
-                   `� Todos (${contagem.todos})`}
+                   `📋 Todos (${contagem.todos})`}
                 </Text>
               </PressableAnimado>
             ))}
@@ -284,7 +288,16 @@ export default function Agenda() {
               </Text>
             </View>
           ) : (
-            agendamentosFiltrados.map(renderizarCard)
+            <FlatList
+              data={agendamentosFiltrados}
+              renderItem={renderizarCard}
+              keyExtractor={(item) => item.id}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+              scrollEnabled={false}
+            />
           )}
         </ScrollView>
       </Animated.View>

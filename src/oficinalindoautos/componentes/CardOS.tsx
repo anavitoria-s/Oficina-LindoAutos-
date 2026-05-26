@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { OrdemServico, useOficina } from '../context/OficinaContext';
 import { enviarMensagemWhatsApp } from '../utils/whatsapp';
@@ -10,7 +10,7 @@ type Props = {
   onEdit: (ordem: OrdemServico) => void;
 };
 
-export default function CardOS({ ordem, onEdit }: Props) {
+function CardOS({ ordem, onEdit }: Props) {
   const { atualizarStatusOrdemServico, excluirOrdemServico } = useOficina();
 
   const getStatusInfo = (status: OrdemServico['status']) => {
@@ -237,3 +237,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+
+export default memo(CardOS);

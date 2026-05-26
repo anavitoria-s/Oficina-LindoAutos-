@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Modal, Animated, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TextInput, Modal, Animated, TouchableOpacity, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOficina, OrdemServico } from '../context/OficinaContext';
 import CardOS from '../componentes/CardOS';
@@ -110,11 +110,13 @@ export default function ListaOS() {
     setModalVisivel(false);
   };
 
-  const ordensFiltradas = ordensServico.filter(os =>
-    os.cliente.toLowerCase().includes(busca.toLowerCase()) ||
-    os.carro.toLowerCase().includes(busca.toLowerCase()) ||
-    os.servico.toLowerCase().includes(busca.toLowerCase())
-  );
+  const ordensFiltradas = useMemo(() => {
+    return ordensServico.filter(os =>
+      os.cliente.toLowerCase().includes(busca.toLowerCase()) ||
+      os.carro.toLowerCase().includes(busca.toLowerCase()) ||
+      os.servico.toLowerCase().includes(busca.toLowerCase())
+    );
+  }, [ordensServico, busca]);
 
   const camposPreenchidos = cliente && telefone && carro && placa && servico && valor;
 
@@ -147,9 +149,16 @@ export default function ListaOS() {
               </Text>
             </View>
           ) : (
-            ordensFiltradas.map(ordem => (
-              <CardOS key={ordem.id} ordem={ordem} onEdit={iniciarEdicao} />
-            ))
+            <FlatList
+              data={ordensFiltradas}
+              renderItem={({ item }) => <CardOS ordem={item} onEdit={iniciarEdicao} />}
+              keyExtractor={(item) => item.id}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+              scrollEnabled={false}
+            />
           )}
         </ScrollView>
 
