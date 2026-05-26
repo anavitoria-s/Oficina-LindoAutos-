@@ -10,10 +10,10 @@ export type Agendamento = {
   servico: string;
   data: string;
   telefone: string;
-  status: 'PENDENTE' | 'CONCLUIDO';
+  status: 'AGENDADO' | 'CONFIRMADO' | 'EM_ATENDIMENTO' | 'CONCLUIDO' | 'NAO_COMPARECEU' | 'CANCELADO';
   placa?: string;
   criadoEm?: string;
-  concluidoEm?: string;
+  atualizadoEm?: string;
 };
 
 export type Orcamento = {
@@ -64,7 +64,7 @@ type OficinaContextType = {
   adicionarOrdemServico: (dados: Omit<OrdemServico, 'id' | 'status' | 'dataInicio'>) => Promise<void>;
   adicionarCliente: (dados: Omit<Cliente, 'id' | 'ultimaVisita'>) => void;
   atualizarStatusOrdemServico: (id: string, status: 'ANALISE' | 'REPARO' | 'CONCLUIDO') => Promise<void>;
-  atualizarStatusAgendamento: (id: string, status: 'PENDENTE' | 'CONCLUIDO') => void;
+  atualizarStatusAgendamento: (id: string, status: Agendamento['status']) => void;
   atualizarStatusOrcamento: (id: string, status: 'ABERTO' | 'APROVADO' | 'REJEITADO') => void;
   excluirAgendamento: (id: string) => void;
   excluirOrcamento: (id: string) => void;
@@ -233,7 +233,7 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
 
   const adicionarAgendamento = (dados: Omit<Agendamento, 'id' | 'status'>) => {
     const id = String(Date.now());
-    const status = 'PENDENTE';
+    const status: Agendamento['status'] = 'AGENDADO';
     const placaVal = dados.placa || '';
     const criadoEm = new Date().toISOString();
 
@@ -346,14 +346,10 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const atualizarStatusAgendamento = (id: string, status: 'PENDENTE' | 'CONCLUIDO') => {
+  const atualizarStatusAgendamento = (id: string, status: Agendamento['status']) => {
     try {
-      if (status === 'CONCLUIDO') {
-        const concluidoEm = new Date().toISOString();
-        db.runSync('UPDATE agendamentos SET status = ?, concluidoEm = ? WHERE id = ?', [status, concluidoEm, id]);
-      } else {
-        db.runSync('UPDATE agendamentos SET status = ? WHERE id = ?', [status, id]);
-      }
+      const atualizadoEm = new Date().toISOString();
+      db.runSync('UPDATE agendamentos SET status = ?, atualizadoEm = ? WHERE id = ?', [status, atualizadoEm, id]);
       carregarDados();
     } catch (e) {
       console.error('Erro ao atualizar status do agendamento no SQLite', e);

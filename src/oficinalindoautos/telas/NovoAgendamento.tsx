@@ -5,6 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOficina } from '../context/OficinaContext';
 import PressableAnimado from '../componentes/PressableAnimado';
 
+function formatarDataInput(text: string): string {
+  // Remove tudo exceto números
+  const nums = text.replace(/\D/g, '');
+  
+  if (nums.length <= 2) return nums;
+  if (nums.length <= 4) return `${nums.slice(0, 2)}/${nums.slice(2)}`;
+  if (nums.length <= 8) return `${nums.slice(0, 2)}/${nums.slice(2, 4)} às ${nums.slice(4, 6)}:${nums.slice(6, 8) || ''}`;
+  return `${nums.slice(0, 2)}/${nums.slice(2, 4)}/${nums.slice(4, 8)} às ${nums.slice(8, 10)}:${nums.slice(10, 12) || ''}`;
+}
+
 export default function NovoAgendamento() {
   const navigation = useNavigation<any>();
   const { adicionarAgendamento, clientes } = useOficina();
@@ -96,7 +106,13 @@ export default function NovoAgendamento() {
           <TextInput style={styles.input} value={servico} onChangeText={setServico} placeholder="Troca de óleo, alinhamento..." />
           
           <Text style={styles.label}>Data e Hora do Agendamento</Text>
-          <TextInput style={styles.input} value={data} onChangeText={setData} placeholder="Ex: 25/05 às 14:00" />
+          <TextInput 
+            style={[styles.input, { fontSize: 16, fontWeight: '700' }]} 
+            value={data} 
+            onChangeText={(text) => setData(formatarDataInput(text))} 
+            placeholder="DD/MM/AAAA às HH:mm"
+            keyboardType="numeric"
+          />
 
           <PressableAnimado 
             style={[styles.botao, !camposPreenchidos && styles.botaoDesativado]} 

@@ -1,14 +1,69 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Animated, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Animated, Modal, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOficina, Agendamento } from '../context/OficinaContext';
 import { enviarMensagemWhatsApp } from '../utils/whatsapp';
 import { formatarDataHoraBrasileira } from '../utils/formatacao';
 import PressableAnimado from '../componentes/PressableAnimado';
 
+const STATUS_CONFIG: Record<Agendamento['status'], { label: string; color: string; bg: string; next?: Agendamento['status'][]; actionLabel?: string }> = {
+  AGENDADO: { label: 'Agendado', color: '#888', bg: '#f0f0f0', next: ['CONFIRMADO', 'CANCELADO'], actionLabel: 'Confirmar ✅' },
+  CONFIRMADO: { label: 'Confirmado', color: '#007AFF', bg: '#E3F2FD', next: ['EM_ATENDIMENTO', 'NAO_COMPARECEU'], actionLabel: 'Iniciar ⚙️' },
+  EM_ATENDIMENTO: { label: 'Em Atendimento', color: '#E6A23C', bg: '#FFF8E1', next: ['CONCLUIDO'], actionLabel: 'Concluir ✅' },
+  CONCLUIDO: { label: 'Concluído', color: '#2bcf67', bg: '#E8F5E9' },
+  NAO_COMPARECEU: { label: 'Não Compareceu', color: '#E53E3E', bg: '#FFEBEE' },
+  CANCELADO: { label: 'Cancelado', color: '#666', bg: '#f5f5f5' },
+};
+
+function parseDataHora(dataStr: string): Date | null {
+  const hoje = new Date();
+  const partes = dataStr.toLowerCase().trim();
+  const match = partes.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\s*(?:[às\s]+)?(\d{1,2}):?(\d{2})?/);
+  if (match) {
+    const [, dia, mes, ano, hora, minuto] = match;
+    let anoCompleto = ano ? (ano.length === 2 ? 2000 + parseInt(ano) : parseInt(ano)) : hoje.getFullYear();
+    const data = new Date(anoCompleto, parseInt(mes) - 1, parseInt(dia), parseInt(hora || '0'), parseInt(minuto || '0'));
+    return isNaN(data.getTime()) ? null : data;
+  }
+  return null;
+}
+
+function formatarDataInput(text: string): string {
+  // Remove tudo exceto números
+  const nums = text.replace(/\D/g, '');
+  
+  if (nums.length <= 2) return nums;
+  if (nums.length <= 4) return `${nums.slice(0, 2)}/${nums.slice(2)}`;
+  if (nums.length <= 8) return `${nums.slice(0, 2)}/${nums.slice(2, 4)} às ${nums.slice(4, 6)}:${nums.slice(6, 8) || ''}`;
+  return `${nums.slice(0, 2)}/${nums.slice(2, 4)}/${nums.slice(4, 8)} às ${nums.slice(8, 10)}:${nums.slice(10, 12) || ''}`;
+}
+
+function isHoje(dataStr: string): boolean {
+  const data = parseDataHora(dataStr);
+  if (!data) return false;
+  const hoje = new Date();
+  return data.getDate() === hoje.getDate() && 
+         data.getMonth() === hoje.getMonth() && 
+         data.getFullYear() === hoje.getFullYear();
+}
+
+function isFuturo(dataStr: string): boolean {
+  const data = parseDataHora(dataStr);
+  if (!data) return false;
+  return data.getTime() > Date.now();
+}
+
+function isPassado(dataStr: string): boolean {
+  const data = parseDataHora(dataStr);
+  if (!data) return false;
+  return data.getTime() < Date.now() - 24 * 60 * 60 * 1000;
+}
+
 export default function Agenda() {
   const { agendamentos, atualizarStatusAgendamento, excluirAgendamento, editarAgendamento } = useOficina();
   const [busca, setBusca] = useState('');
+  const [abaAtiva, setAbaAtiva] = useState<'hoje' | 'futuro' | 'passado' | 'todos'>('hoje');
+  const [statusFiltro, setStatusFiltro] = useState<Agendamento['status'] | null>(null);
 
   const [agendamentoEditando, setAgendamentoEditando] = useState<Agendamento | null>(null);
   const [editCarro, setEditCarro] = useState('');
@@ -16,6 +71,9 @@ export default function Agenda() {
   const [editServico, setEditServico] = useState('');
   const [editData, setEditData] = useState('');
   const [editTelefone, setEditTelefone] = useState('');
+  
+  const [remarcando, setRemarcando] = useState<Agendamento | null>(null);
+  const [novaData, setNovaData] = useState('');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -49,18 +107,147 @@ export default function Agenda() {
     }
   };
 
-  const agendamentosFiltrados = agendamentos.filter(item =>
-    item.cliente.toLowerCase().includes(busca.toLowerCase()) ||
-    item.carro.toLowerCase().includes(busca.toLowerCase()) ||
-    item.servico.toLowerCase().includes(busca.toLowerCase())
-  );
+  const iniciarRemarcacao = (item: Agendamento) => {
+    setRemarcando(item);
+    setNovaData(item.data);
+  };
+
+  const confirmarRemarcacao = () => {
+    if (remarcando && novaData.trim()) {
+      editarAgendamento(remarcando.id, {
+        carro: remarcando.carro,
+        placa: remarcando.placa || '',
+        servico: remarcando.servico,
+        data: novaData,
+        telefone: remarcando.telefone,
+      });
+      setRemarcando(null);
+      setNovaData('');
+    }
+  };
+
+  const agendamentosFiltrados = agendamentos.filter(item => {
+    const matchBusca = item.cliente.toLowerCase().includes(busca.toLowerCase()) ||
+                       item.carro.toLowerCase().includes(busca.toLowerCase()) ||
+                       item.servico.toLowerCase().includes(busca.toLowerCase());
+    
+    if (!matchBusca) return false;
+    if (statusFiltro && item.status !== statusFiltro) return false;
+    
+    if (abaAtiva === 'hoje') return isHoje(item.data);
+    if (abaAtiva === 'futuro') return isFuturo(item.data);
+    if (abaAtiva === 'passado') return isPassado(item.data);
+    return true;
+  });
+
+  const contagem = {
+    hoje: agendamentos.filter(a => isHoje(a.data)).length,
+    futuro: agendamentos.filter(a => isFuturo(a.data)).length,
+    passado: agendamentos.filter(a => isPassado(a.data)).length,
+    todos: agendamentos.length,
+  };
+
+  const renderizarCard = (item: Agendamento) => {
+    const config = STATUS_CONFIG[item.status];
+    const ehHoje = isHoje(item.data);
+    
+    return (
+      <View key={item.id} style={[styles.card, ehHoje && styles.cardHoje]}>
+        <View style={styles.cardHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>{item.carro}</Text>
+            {item.placa ? <Text style={styles.placaText}>🎫 Placa: {item.placa}</Text> : null}
+          </View>
+          <View style={[styles.badge, { backgroundColor: config.bg, borderColor: config.color }]}>
+            <Text style={[styles.badgeText, { color: config.color }]}>{config.label}</Text>
+          </View>
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.infoSection}>
+          <Text style={styles.cardLine}>👤 <Text style={styles.value}>{item.cliente}</Text></Text>
+          <Text style={styles.cardLine}>📞 <Text style={styles.value}>{item.telefone || 'Não informado'}</Text></Text>
+          <Text style={styles.cardLine}>🔧 <Text style={styles.value}>{item.servico}</Text></Text>
+          <Text style={[styles.cardLine, ehHoje && styles.dataHoje]}>
+            📅 <Text style={styles.value}>{item.data}</Text>
+            {ehHoje && <Text style={styles.hojeBadge}> HOJE</Text>}
+          </Text>
+        </View>
+
+        <View style={styles.actionRow}>
+          {config.next ? (
+            <PressableAnimado 
+              style={[styles.btnAction, { backgroundColor: config.color, borderColor: config.color }]} 
+              onPress={() => atualizarStatusAgendamento(item.id, config.next![0])}
+            >
+              <Text style={[styles.btnActionText, { color: '#fff' }]}>{config.actionLabel}</Text>
+            </PressableAnimado>
+          ) : (
+            <View style={[styles.btnAction, styles.btnDisabled]}>
+              <Text style={styles.btnDisabledText}>{config.label}</Text>
+            </View>
+          )}
+
+          <PressableAnimado 
+            style={[styles.btnAction, styles.btnRemarcar]} 
+            onPress={() => iniciarRemarcacao(item)}
+          >
+            <Text style={styles.btnRemarcarText}>⏰ Remarcar</Text>
+          </PressableAnimado>
+
+          <PressableAnimado 
+            style={[styles.btnAction, styles.btnEdit]} 
+            onPress={() => iniciarEdicao(item)}
+          >
+            <Text style={styles.btnEditText}>✏️</Text>
+          </PressableAnimado>
+
+          <PressableAnimado 
+            style={[styles.btnAction, styles.btnDelete]} 
+            onPress={() => excluirAgendamento(item.id)}
+          >
+            <Text style={styles.btnDeleteText}>🗑️</Text>
+          </PressableAnimado>
+        </View>
+
+        {config.next && config.next.length > 1 && (
+          <View style={styles.altStatusRow}>
+            {config.next.slice(1).map(altStatus => (
+              <PressableAnimado 
+                key={altStatus}
+                style={[styles.btnAltStatus, { borderColor: STATUS_CONFIG[altStatus].color }]} 
+                onPress={() => atualizarStatusAgendamento(item.id, altStatus)}
+              >
+                <Text style={[styles.btnAltStatusText, { color: STATUS_CONFIG[altStatus].color }]}>
+                  {STATUS_CONFIG[altStatus].label}
+                </Text>
+              </PressableAnimado>
+            ))}
+          </View>
+        )}
+
+        {(item.status === 'CONFIRMADO' || item.status === 'AGENDADO') && (
+          <PressableAnimado 
+            style={styles.btnWhatsApp} 
+            onPress={() => {
+              const msg = `Olá, *${item.cliente}*!\n\n📅 Lembrete da oficina *LindoAutos*!\n\nSeu agendamento para o *${item.carro}* está marcado para:\n⏰ *${item.data}*\n\n� *Serviço*: ${item.servico}\n\nEstamos aguardando você! 🚗�`;
+              enviarMensagemWhatsApp(item.telefone, msg);
+            }}
+          >
+            <Text style={styles.btnWhatsAppText}>💬 Enviar Lembrete WhatsApp</Text>
+          </PressableAnimado>
+        )}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Animated.View style={{ opacity: fadeAnim, flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          <Text style={styles.title}>Agenda</Text>
-          <Text style={styles.subtitle}>Gerencie os agendamentos e horários marcados na oficina.</Text>
+          <Text style={styles.title}>📅 Agenda da Oficina</Text>
+          <Text style={styles.subtitle}>Gerencie agendamentos e acompanhe status dos clientes</Text>
 
           <TextInput 
             style={styles.searchBar} 
@@ -69,91 +256,40 @@ export default function Agenda() {
             placeholder="🔍 Buscar por cliente, veículo ou serviço..." 
             placeholderTextColor="#888"
           />
+
+          {/* Abas de filtro por data */}
+          <View style={styles.abasContainer}>
+            {(['hoje', 'futuro', 'passado', 'todos'] as const).map(aba => (
+              <PressableAnimado
+                key={aba}
+                style={[styles.aba, abaAtiva === aba && styles.abaAtiva]}
+                onPress={() => setAbaAtiva(aba)}
+              >
+                <Text style={[styles.abaText, abaAtiva === aba && styles.abaTextAtiva]}>
+                  {aba === 'hoje' ? `📍 Hoje (${contagem.hoje})` : 
+                   aba === 'futuro' ? `🔜 Futuro (${contagem.futuro})` :
+                   aba === 'passado' ? `📜 Passado (${contagem.passado})` :
+                   `� Todos (${contagem.todos})`}
+                </Text>
+              </PressableAnimado>
+            ))}
+          </View>
           
           {agendamentosFiltrados.length === 0 ? (
             <View style={styles.emptyCard}>
               <Text style={styles.emptyText}>
-                {agendamentos.length === 0 ? 'Nenhum agendamento cadastrado ainda.' : 'Nenhum agendamento correspondente encontrado.'}
+                {agendamentos.length === 0 
+                  ? '📭 Nenhum agendamento cadastrado.\n\nToque em "Novo" na barra inferior para criar.' 
+                  : '🔍 Nenhum agendamento encontrado para este filtro.'}
               </Text>
             </View>
           ) : (
-            agendamentosFiltrados.map(item => {
-              const isPendente = item.status === 'PENDENTE';
-              return (
-                <View key={item.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <View>
-                      <Text style={styles.cardTitle}>{item.carro}</Text>
-                      {item.placa ? <Text style={{ fontSize: 11, fontWeight: '800', color: '#666', marginTop: 2 }}>🎫 Placa: {item.placa}</Text> : null}
-                    </View>
-                    <View style={[styles.badge, { borderColor: isPendente ? '#E6A23C' : '#2bcf67' }]}>
-                      <Text style={[styles.badgeText, { color: isPendente ? '#E6A23C' : '#2bcf67' }]}>
-                        {isPendente ? 'Pendente' : 'Concluído'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.divider} />
-
-                  <Text style={styles.cardLine}>Cliente: <Text style={styles.value}>{item.cliente}</Text></Text>
-                  <Text style={styles.cardLine}>Telefone: <Text style={styles.value}>{item.telefone || 'Não informado'}</Text></Text>
-                  <Text style={styles.cardLine}>Serviço: <Text style={styles.value}>{item.servico}</Text></Text>
-                  <Text style={styles.cardLine}>Data Marcada: <Text style={styles.value}>{item.data}</Text></Text>
-
-                  <View style={{ marginTop: 8, marginBottom: 8, padding: 8, backgroundColor: '#f9f9f9', borderRadius: 6, borderWidth: 1, borderColor: '#eee' }}>
-                    <Text style={{ fontSize: 11, color: '#666', fontWeight: '600' }}>Registro: {formatarDataHoraBrasileira(item.criadoEm)}</Text>
-                    {item.concluidoEm ? (
-                      <Text style={{ fontSize: 11, color: '#2bcf67', fontWeight: '800', marginTop: 2 }}>Concluído em: {formatarDataHoraBrasileira(item.concluidoEm)}</Text>
-                    ) : null}
-                  </View>
-
-                  <View style={styles.actionRow}>
-                    {isPendente ? (
-                      <PressableAnimado 
-                        style={[styles.btnAction, styles.btnComplete]} 
-                        onPress={() => atualizarStatusAgendamento(item.id, 'CONCLUIDO')}
-                      >
-                        <Text style={styles.btnCompleteText}>Concluir ✅</Text>
-                      </PressableAnimado>
-                    ) : (
-                      <View style={[styles.btnAction, styles.btnFinished]}>
-                        <Text style={styles.btnFinishedText}>Concluído 🎉</Text>
-                      </View>
-                    )}
-
-                    <PressableAnimado 
-                      style={[styles.btnAction, styles.btnEdit]} 
-                      onPress={() => iniciarEdicao(item)}
-                    >
-                      <Text style={styles.btnEditText}>Editar ✏️</Text>
-                    </PressableAnimado>
-
-                    <PressableAnimado 
-                      style={[styles.btnAction, styles.btnDelete]} 
-                      onPress={() => excluirAgendamento(item.id)}
-                    >
-                      <Text style={styles.btnDeleteText}>Excluir 🗑️</Text>
-                    </PressableAnimado>
-                  </View>
-
-                  {isPendente && (
-                    <PressableAnimado 
-                      style={styles.btnWhatsApp} 
-                      onPress={() => {
-                        const msg = `Olá, *${item.cliente}*!\nEste é um lembrete da oficina *LindoAutos*! 🚗\n\nSeu agendamento para o veículo *${item.carro}* está confirmado para o dia/horário *${item.data}*!\n\n📋 *Serviço*: ${item.servico}\n\nEstamos aguardando você! 🛠️`;
-                        enviarMensagemWhatsApp(item.telefone, msg);
-                      }}
-                    >
-                      <Text style={styles.btnWhatsAppText}>Enviar Lembrete por WhatsApp 💬</Text>
-                    </PressableAnimado>
-                  )}
-                </View>
-              );
-            })
+            agendamentosFiltrados.map(renderizarCard)
           )}
         </ScrollView>
       </Animated.View>
 
+      {/* Modal de Edição */}
       <Modal
         visible={agendamentoEditando !== null}
         transparent={true}
@@ -163,33 +299,73 @@ export default function Agenda() {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
           <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} keyboardShouldPersistTaps="handled">
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Editar Agendamento</Text>
+              <Text style={styles.modalTitle}>✏️ Editar Agendamento</Text>
             
-            <Text style={styles.modalLabel}>Carro / Modelo</Text>
-            <TextInput style={styles.modalInput} value={editCarro} onChangeText={setEditCarro} />
+              <Text style={styles.modalLabel}>Carro / Modelo</Text>
+              <TextInput style={styles.modalInput} value={editCarro} onChangeText={setEditCarro} />
 
-            <Text style={styles.modalLabel}>Placa do Veículo</Text>
-            <TextInput style={styles.modalInput} value={editPlaca} onChangeText={setEditPlaca} autoCapitalize="characters" />
+              <Text style={styles.modalLabel}>Placa do Veículo</Text>
+              <TextInput style={styles.modalInput} value={editPlaca} onChangeText={setEditPlaca} autoCapitalize="characters" />
 
-            <Text style={styles.modalLabel}>Serviço</Text>
-            <TextInput style={styles.modalInput} value={editServico} onChangeText={setEditServico} />
+              <Text style={styles.modalLabel}>Serviço</Text>
+              <TextInput style={styles.modalInput} value={editServico} onChangeText={setEditServico} />
 
-            <Text style={styles.modalLabel}>Data / Horário</Text>
-            <TextInput style={styles.modalInput} value={editData} onChangeText={setEditData} />
+              <Text style={styles.modalLabel}>Data / Horário</Text>
+              <TextInput style={styles.modalInput} value={editData} onChangeText={setEditData} />
 
-            <Text style={styles.modalLabel}>Telefone</Text>
-            <TextInput style={styles.modalInput} value={editTelefone} onChangeText={setEditTelefone} keyboardType="phone-pad" />
+              <Text style={styles.modalLabel}>Telefone</Text>
+              <TextInput style={styles.modalInput} value={editTelefone} onChangeText={setEditTelefone} keyboardType="phone-pad" />
 
-            <View style={styles.modalBtnRow}>
-              <PressableAnimado style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => setAgendamentoEditando(null)}>
-                <Text style={styles.modalBtnCancelText}>Cancelar</Text>
-              </PressableAnimado>
-              <PressableAnimado style={[styles.modalBtn, styles.modalBtnSave]} onPress={salvarEdicao}>
-                <Text style={styles.modalBtnSaveText}>Salvar 💾</Text>
-              </PressableAnimado>
-            </View>
+              <View style={styles.modalBtnRow}>
+                <PressableAnimado style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => setAgendamentoEditando(null)}>
+                  <Text style={styles.modalBtnCancelText}>Cancelar</Text>
+                </PressableAnimado>
+                <PressableAnimado style={[styles.modalBtn, styles.modalBtnSave]} onPress={salvarEdicao}>
+                  <Text style={styles.modalBtnSaveText}>Salvar 💾</Text>
+                </PressableAnimado>
+              </View>
             </View>
           </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Modal de Remarcação */}
+      <Modal
+        visible={remarcando !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => { setRemarcando(null); setNovaData(''); }}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>⏰ Remarcar Atendimento</Text>
+            
+            {remarcando && (
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ fontSize: 14, color: '#666' }}>Cliente: <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.cliente}</Text></Text>
+                <Text style={{ fontSize: 14, color: '#666' }}>Veículo: <Text style={{ fontWeight: '800', color: '#000' }}>{remarcando.carro}</Text></Text>
+                <Text style={{ fontSize: 14, color: '#666' }}>Data atual: <Text style={{ fontWeight: '800', color: '#E53E3E' }}>{remarcando.data}</Text></Text>
+              </View>
+            )}
+
+            <Text style={styles.modalLabel}>Nova Data e Horário</Text>
+            <TextInput 
+              style={[styles.modalInput, { fontSize: 16 }]} 
+              value={novaData} 
+              onChangeText={(text) => setNovaData(formatarDataInput(text))}
+              placeholder="DD/MM/AAAA às HH:mm"
+              autoFocus
+            />
+
+            <View style={styles.modalBtnRow}>
+              <PressableAnimado style={[styles.modalBtn, styles.modalBtnCancel]} onPress={() => { setRemarcando(null); setNovaData(''); }}>
+                <Text style={styles.modalBtnCancelText}>Cancelar</Text>
+              </PressableAnimado>
+              <PressableAnimado style={[styles.modalBtn, styles.modalBtnSave]} onPress={confirmarRemarcacao}>
+                <Text style={styles.modalBtnSaveText}>Confirmar Remarcação ⏰</Text>
+              </PressableAnimado>
+            </View>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
@@ -230,6 +406,33 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     elevation: 4,
   },
+  cardHoje: {
+    borderColor: '#007AFF',
+    borderWidth: 3,
+    shadowColor: '#007AFF',
+  },
+  placaText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#666',
+    marginTop: 2,
+  },
+  infoSection: {
+    marginBottom: 8,
+  },
+  dataHoje: {
+    color: '#007AFF',
+  },
+  hojeBadge: {
+    backgroundColor: '#007AFF',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -268,33 +471,87 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#000',
-    marginHorizontal: 4,
-    paddingHorizontal: 11,
+    marginHorizontal: 2,
+    minWidth: 60,
   },
-  btnComplete: {
-    backgroundColor: '#000',
+  btnActionText: {
+    fontSize: 12,
+    fontWeight: '800',
   },
-  btnCompleteText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  btnFinished: {
+  btnDisabled: {
     backgroundColor: '#f1f1f1',
     borderColor: '#ddd',
   },
-  btnFinishedText: {
+  btnDisabledText: {
     color: '#888',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
+  },
+  btnRemarcar: {
+    backgroundColor: '#FFD166',
+    borderColor: '#f6c042',
+  },
+  btnRemarcarText: {
+    color: '#000',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  altStatusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  btnAltStatus: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    backgroundColor: '#fff',
+  },
+  btnAltStatusText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  abasContainer: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  aba: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
+  abaAtiva: {
+    borderColor: '#007AFF',
+    backgroundColor: '#E3F2FD',
+  },
+  abaText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#666',
+  },
+  abaTextAtiva: {
+    color: '#007AFF',
+    fontWeight: '900',
   },
   btnDelete: {
     backgroundColor: '#f7d1d1',
     borderColor: '#E53E3E',
+    maxWidth: 50,
   },
   btnDeleteText: {
     color: '#E53E3E',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
   btnEdit: {
