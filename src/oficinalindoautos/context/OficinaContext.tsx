@@ -196,6 +196,11 @@ export function OficinaProvider({ children }: { children: ReactNode }) {
         try { db.execSync('ALTER TABLE ordens_servico ADD COLUMN dataConclusao TEXT NOT NULL DEFAULT ""'); } catch (err) {} 
       }
 
+      // Migrar agendamentos antigos que tinham o status "PENDENTE" para "AGENDADO"
+      try {
+        db.execSync("UPDATE agendamentos SET status = 'AGENDADO' WHERE status = 'PENDENTE'");
+      } catch (err) {}
+
       carregarDados();
     } catch (e) {
       console.error('Erro ao inicializar tabelas do SQLite', e);

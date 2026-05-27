@@ -151,7 +151,7 @@ export default function Agenda() {
 
   const renderizarCard = useMemo(() => {
     return ({ item }: { item: Agendamento }) => {
-      const config = STATUS_CONFIG[item.status];
+      const config = STATUS_CONFIG[item.status] || STATUS_CONFIG['AGENDADO'];
       const ehHoje = isHoje(item.data);
       
       return (
